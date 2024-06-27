@@ -71,11 +71,22 @@ class ProofTree:
         else:
             return Node(world_name, formula, children)
         return None
+    
+    def create_new_world(self):
         """Generates a unique new world name."""
         new_world_name = f'w{self.current_world_index}'
         self.worlds.append(new_world_name)
         self.current_world_index += 1
         return new_world_name
+    
+    def ensure_new_world(self):
+        """Ensures there is always a new world available for expansion."""
+        if len(self.worlds) <= self.current_world_index:
+            # If we run out of pre-generated worlds, generate a new one
+            return self.create_new_world()
+        else:
+            # Otherwise, use the next available pre-generated world
+            return self.worlds[self.current_world_index]
 
     def resolve_box_operator(self, node, new_world):
         """Walks through all parent nodes and check whether box operator
