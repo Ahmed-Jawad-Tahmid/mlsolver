@@ -19,12 +19,12 @@ class ProofTree:
     """
 
     def __init__(self, formula):
-        self.WORLDS = ['t', 's']
-        self.start_world = self.WORLDS.pop()
-        self.root_node = self.create_node(self.start_world, formula, [])
-        self.root_node.partial_assign = {self.start_world: {}}
+        self.worlds = []  # List to store names of all worlds used in the proof tree
+        self.current_world_index = 0  # Index to help generate unique world names
+        self.root_node = self.create_node(self.ensure_new_world(), formula, [])  # Initialize with the first world
         self.kripke_structure = None
         self.is_closed = None
+
 
     def derive(self):
         """Determines a valid Kripke structure if formula is satisfiable.
