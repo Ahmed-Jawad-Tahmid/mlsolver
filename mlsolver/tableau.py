@@ -102,10 +102,8 @@ class ProofTree:
         return leafs + self.resolve_box_operator(node.parent, new_world)
 
     def expand_node(self, node):
-        """Contains all rules of tableau calculus and tries to match them to a node
-        """
         if isinstance(node.formula, Atom):
-            return None
+            return None  # Atoms do not expand further
 
         if isinstance(node.formula, Not):
             formula = node.formula.inner
@@ -122,10 +120,13 @@ class ProofTree:
                 inner_node = self.create_node(node.world, Not(formula.right), [])
                 return self.create_node(node.world, formula.left, [inner_node])
             if isinstance(formula, Box):
+                # Handling not Box A -> Diamond not A
                 return self.create_node(node.world, Diamond(Not(formula.inner)), [])
             if isinstance(formula, Diamond):
-                return self.create_node(node.world, Box(Not(formula.inner)), [])
-            return self.create_node(node.world, formula, [])
+                # Handling not Diamond A -> Box not A, and ensuring not Box A in the same world
+                not_box_a = Box(formula.inner)
+                return [
+                        self.create_node(node.world, Not(not_box_a), [])]
 
         if isinstance(node.formula, And):
             inner_node = self.create_node(node.world, node.formula.right, [])
@@ -143,8 +144,14 @@ class ProofTree:
             second_node = self.create_node(node.world, node.formula.right, [])
             return [first_node, second_node]
 
+        if isinstance(node.formula, Box):
+            # When Box A is true, also assert that Diamond A is true in the same world
+            a_formula = node.formula.inner
+            return [self.create_node(node.world, Diamond(a_formula), [])]
+
         if isinstance(node.formula, Diamond):
-            next_world = self.WORLDS.pop()
+            # Normally handle Diamond A which is true in at least one accessible world
+            next_world = self.ensure_new_world()
             leafs_forced_by_box = self.resolve_box_operator(node, next_world)
             node_to_add = self.create_node(next_world, node.formula.inner, leafs_forced_by_box)
             node_to_add.relations.add((node.world, next_world))
