@@ -71,6 +71,11 @@ class ProofTree:
         else:
             return Node(world_name, formula, children)
         return None
+        """Generates a unique new world name."""
+        new_world_name = f'w{self.current_world_index}'
+        self.worlds.append(new_world_name)
+        self.current_world_index += 1
+        return new_world_name
 
     def resolve_box_operator(self, node, new_world):
         """Walks through all parent nodes and check whether box operator
